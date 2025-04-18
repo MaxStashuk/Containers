@@ -14,10 +14,10 @@ public class ContainerService : IContainerService
 
     public IEnumerable<Container> GetAllContainers()
     {
-        List <Container> containers = new List<Container>();
-        
+        List<Container> containers = new List<Container>();
+
         string queryString = "SELECT * FROM Containers";
-        
+
         using (SqlConnection connection = new SqlConnection(_connectionString))
         {
             SqlCommand command = new SqlCommand(queryString, connection);
@@ -40,13 +40,35 @@ public class ContainerService : IContainerService
                         containers.Add(container);
                     }
                 }
+
+                return containers;
             }
             finally
             {
                 reader.Close();
             }
-            
+
         }
+
         throw new NotImplementedException();
+    }
+
+    public bool CreateContainer(Container container)
+    {
+        const string insertString  = 
+            "INSERT INTO Containers (ContainerTypeId, isHazardious, Name) VALUES (@ContainerTypeId, @isHazardious, @Name);";
+        int countRowsAdded = -1;
+
+        using (SqlConnection connection = new SqlConnection(_connectionString))
+        {
+            SqlCommand command = new SqlCommand(insertString, connection);
+            command.Parameters.AddWithValue("@ContainerTypeId", container.ContainerTypeId);
+            command.Parameters.AddWithValue("@isHazardious", container.isHazardious);
+            command.Parameters.AddWithValue("@Name", container.Name);
+            
+            connection.Open();
+            countRowsAdded = command.ExecuteNonQuery();
+        }
+        return countRowsAdded != -1;
     }
 }
